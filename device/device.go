@@ -23,6 +23,7 @@ type Device struct {
 	isUp     AtomicBool // device is (going) up
 	isClosed AtomicBool // device is closed? (acting as guard)
 	log      *Logger
+	authPath string
 
 	// synchronized resources (locks acquired in order)
 
@@ -253,13 +254,14 @@ func (device *Device) SetPrivateKey(sk NoisePrivateKey) error {
 	return nil
 }
 
-func NewDevice(tunDevice tun.Device, logger *Logger) *Device {
+func NewDevice(tunDevice tun.Device, logger *Logger, authPath string) *Device {
 	device := new(Device)
 
 	device.isUp.Set(false)
 	device.isClosed.Set(false)
 
 	device.log = logger
+	device.authPath = authPath
 
 	device.tun.device = tunDevice
 	mtu, err := device.tun.device.MTU()
@@ -313,7 +315,6 @@ func NewDevice(tunDevice tun.Device, logger *Logger) *Device {
 	go device.RoutineTUNEventReader()
 
 	device.state.starting.Wait()
-
 	return device
 }
 

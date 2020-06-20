@@ -24,6 +24,8 @@ type Peer struct {
 	isRunning                   AtomicBool
 	sync.RWMutex                // Mostly protects endpoint, but is generally taken whenever we modify peer
 	keypairs                    Keypairs
+        pubkey                      string
+	authThrottle                time.Time
 	handshake                   Handshake
 	device                      *Device
 	endpoint                    conn.Endpoint

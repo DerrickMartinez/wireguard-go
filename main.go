@@ -33,7 +33,7 @@ const (
 
 func printUsage() {
 	fmt.Printf("usage:\n")
-	fmt.Printf("%s [-f/--foreground] INTERFACE-NAME\n", os.Args[0])
+	fmt.Printf("%s [-f/--foreground] [-a /path/to/auth/script] INTERFACE-NAME\n", os.Args[0])
 }
 
 func warning() {
@@ -63,7 +63,8 @@ func main() {
 
 	var foreground bool
 	var interfaceName string
-	if len(os.Args) < 2 || len(os.Args) > 3 {
+	var authPath string
+	if len(os.Args) < 2 || len(os.Args) > 4 {
 		printUsage()
 		return
 	}
@@ -77,6 +78,15 @@ func main() {
 			return
 		}
 		interfaceName = os.Args[2]
+
+        case "-a":
+		foreground = true
+                if len(os.Args) != 4 {
+                        printUsage()
+                        return
+                }
+		authPath = os.Args[2]
+                interfaceName = os.Args[3]
 
 	default:
 		foreground = false
@@ -223,7 +233,7 @@ func main() {
 		return
 	}
 
-	device := device.NewDevice(tun, logger)
+	device := device.NewDevice(tun, logger, authPath)
 
 	logger.Info.Println("Device started")
 

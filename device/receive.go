@@ -13,6 +13,7 @@ import (
 	"sync"
 	"sync/atomic"
 	"time"
+	"os/exec"
 
 	"golang.org/x/crypto/chacha20poly1305"
 	"golang.org/x/net/ipv4"
@@ -419,14 +420,40 @@ func (device *Device) RoutineHandshake() {
 				continue
 			}
 
-			// update timers
+			// Check if connection has changed, if so, force auth if there is a script defined
+			pEndpoint := "";
+			device.log.Info.Println("Auth new endpoint "+elem.endpoint.DstToString())
+			if peer.endpoint != nil {
+				pEndpoint = peer.endpoint.DstToString()
+			}
+			if pEndpoint != elem.endpoint.DstToString() {
+			    if !peer.authThrottle.IsZero() {
+			       t := time.Now()
+			       if t.Sub(peer.authThrottle).Seconds() < 30 {
+				 continue
+			       } else {
+				 // Reset clock
+				 peer.authThrottle = time.Now()
+			       }
+		            }
+	                    // different peer connection
+			    cmd := exec.Command(device.authPath, "auth", "--pubkey", peer.pubkey)
+			    peer.authThrottle = time.Now()
+			    if err := cmd.Run() ; err != nil {
+		                device.log.Info.Println("Auth failed for "+peer.pubkey)
+				continue
+	                    } else {
+			        device.log.Info.Println("Auth ok for "+peer.pubkey)
+                            }
 
-			peer.timersAnyAuthenticatedPacketTraversal()
-			peer.timersAnyAuthenticatedPacketReceived()
+		        }
+
+                        // update timers
+                        peer.timersAnyAuthenticatedPacketTraversal()
+                        peer.timersAnyAuthenticatedPacketReceived()
 
 			// update endpoint
 			peer.SetEndpointFromPacket(elem.endpoint)
-
 			logDebug.Println(peer, "- Received handshake initiation")
 			atomic.AddUint64(&peer.stats.rxBytes, uint64(len(elem.packet)))
 

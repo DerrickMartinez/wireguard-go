@@ -9,6 +9,8 @@ import (
 	"errors"
 	"fmt"
 	"sync"
+	"encoding/base64"
+	"encoding/hex"
 	"time"
 
 	"golang.org/x/crypto/blake2s"
@@ -286,6 +288,16 @@ func (device *Device) ConsumeMessageInitiation(msg *MessageInitiation) *Peer {
 	if peer == nil {
 		return nil
 	}
+
+	// Get peer's public key
+	d, err := hex.DecodeString(peerPK.ToHex())
+        if err != nil {
+		 device.log.Debug.Printf("Failed to decode from hex")
+        }
+        peer.pubkey = base64.StdEncoding.EncodeToString(d)
+        if err != nil {
+		device.log.Debug.Printf("Failed to encode base64")
+        }
 
 	handshake := &peer.handshake
 
