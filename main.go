@@ -80,7 +80,7 @@ func main() {
 		interfaceName = os.Args[2]
 
         case "-a":
-		foreground = true
+		foreground = false
                 if len(os.Args) != 4 {
                         printUsage()
                         return
