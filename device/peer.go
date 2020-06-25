@@ -26,6 +26,7 @@ type Peer struct {
 	keypairs                    Keypairs
     pubkey                      string
     authCount					int
+    elemEndpoint				string
 	authThrottle                time.Time
 	handshake                   Handshake
 	device                      *Device

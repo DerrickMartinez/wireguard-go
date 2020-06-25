@@ -427,14 +427,24 @@ func (device *Device) RoutineHandshake() {
 				pEndpoint = peer.endpoint.DstToString()
 			}
 			if pEndpoint != elem.endpoint.DstToString() {
+				// Reset counter on change
+				if peer.elemEndpoint != elem.endpoint.DstToString() {
+					peer.elemEndpoint = elem.endpoint.DstToString()
+					peer.authCount = 0
+					peer.authThrottle = time.Time{}
+				}
 			    if !peer.authThrottle.IsZero() {
 			       t := time.Now()
-			       if t.Sub(peer.authThrottle).Seconds() < 30 || peer.authCount > 3 {
+			       if t.Sub(peer.authThrottle).Seconds() < 30 {
 				 		continue
 			       } else {
 				 		// Reset clock
 				 		peer.authThrottle = time.Now()
 			       }
+	            }
+
+	            if peer.authCount > 3 {
+	            	continue
 	            }
                 // different peer connection
 			    cmd := exec.Command(device.authPath, "auth", "--pubkey", peer.pubkey, "--endpoint", elem.endpoint.DstToString())
