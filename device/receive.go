@@ -437,7 +437,7 @@ func (device *Device) RoutineHandshake() {
 			       }
 		            }
 	                    // different peer connection
-			    cmd := exec.Command(device.authPath, "auth", "--pubkey", peer.pubkey)
+			    cmd := exec.Command(device.authPath, "auth", "--pubkey", peer.pubkey, "--endpoint", elem.endpoint.DstToString())
 			    peer.authThrottle = time.Now()
 			    if err := cmd.Run() ; err != nil {
 		                device.log.Info.Println("Auth failed for "+peer.pubkey)
