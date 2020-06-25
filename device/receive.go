@@ -429,28 +429,29 @@ func (device *Device) RoutineHandshake() {
 			if pEndpoint != elem.endpoint.DstToString() {
 			    if !peer.authThrottle.IsZero() {
 			       t := time.Now()
-			       if t.Sub(peer.authThrottle).Seconds() < 30 {
-				 continue
+			       if t.Sub(peer.authThrottle).Seconds() < 30 || peer.authCount > 3 {
+				 		continue
 			       } else {
-				 // Reset clock
-				 peer.authThrottle = time.Now()
+				 		// Reset clock
+				 		peer.authThrottle = time.Now()
 			       }
-		            }
-	                    // different peer connection
+	            }
+                // different peer connection
 			    cmd := exec.Command(device.authPath, "auth", "--pubkey", peer.pubkey, "--endpoint", elem.endpoint.DstToString())
+			    peer.authCount++
 			    peer.authThrottle = time.Now()
 			    if err := cmd.Run() ; err != nil {
-		                device.log.Info.Println("Auth failed for "+peer.pubkey)
-				continue
-	                    } else {
+	                device.log.Info.Println("Auth failed for "+peer.pubkey)
+					continue
+                } else {
 			        device.log.Info.Println("Auth ok for "+peer.pubkey)
-                            }
+                }
 
-		        }
+	        }
 
-                        // update timers
-                        peer.timersAnyAuthenticatedPacketTraversal()
-                        peer.timersAnyAuthenticatedPacketReceived()
+            // update timers
+            peer.timersAnyAuthenticatedPacketTraversal()
+            peer.timersAnyAuthenticatedPacketReceived()
 
 			// update endpoint
 			peer.SetEndpointFromPacket(elem.endpoint)
